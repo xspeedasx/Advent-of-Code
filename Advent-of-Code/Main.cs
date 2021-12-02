@@ -1,8 +1,9 @@
-﻿Console.Title = "Advent-of-Code 2021";
+﻿using static AoCSolution;
+Console.Title = "Advent-of-Code 2021";
 var solutions = new[]
 {
-    Day1.Solution,
-    Day2.Solution
+    Day1,
+    Day2
 };
 
 for(;;)
