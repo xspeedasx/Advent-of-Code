@@ -1,0 +1,19 @@
+﻿Console.Title = "Advent-of-Code 2021";
+var solutions = new[]
+{
+    Day1.Solution,
+    Day2.Solution
+};
+
+for(;;)
+{
+    Console.WriteLine($"Choose day to view solution (1-{solutions.Length})");
+    var ans = Console.ReadLine();
+    if (int.TryParse(ans, out var day) && day >= 1 && day <= solutions.Length)
+    {
+        await solutions[day - 1]();
+        Console.WriteLine("Press any key to continue...");
+        Console.ReadKey();
+    }
+    Console.Clear();
+}
