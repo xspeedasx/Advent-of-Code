@@ -3,7 +3,8 @@ Console.Title = "Advent-of-Code 2021";
 var solutions = new[]
 {
     Day1,
-    Day2
+    Day2,
+    Day3
 };
 
 for(;;)
