@@ -1,4 +1,5 @@
-﻿using static AoCSolution;
+﻿using System.Diagnostics;
+using static AoCSolution;
 Console.Title = "Advent-of-Code 2021";
 var solutions = new[]
 {
@@ -7,7 +8,8 @@ var solutions = new[]
     Day3,
     Day4,
     Day5,
-    Day6
+    Day6,
+    Day7
 };
 
 for(;;)
@@ -16,7 +18,11 @@ for(;;)
     var ans = Console.ReadLine();
     if (int.TryParse(ans, out var day) && day >= 1 && day <= solutions.Length)
     {
+        var sw = new Stopwatch();
+        sw.Start();
         await solutions[day - 1]();
+        sw.Stop();
+        Console.WriteLine($"Solving day {day} took: {sw.ElapsedMilliseconds} ms");
         Console.WriteLine("Press any key to continue...");
         Console.ReadKey();
     }
