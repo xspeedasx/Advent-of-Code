@@ -9,7 +9,8 @@ var solutions = new[]
     Day4,
     Day5,
     Day6,
-    Day7
+    Day7,
+    Day8
 };
 
 for(;;)
