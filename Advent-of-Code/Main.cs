@@ -13,6 +13,7 @@ var solutions = new[]
     Day8,
     Day9,
     Day10,
+    Day11,
 };
 
 for(;;)
