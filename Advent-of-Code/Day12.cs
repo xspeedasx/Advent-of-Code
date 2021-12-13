@@ -72,7 +72,7 @@ public static partial class AoCSolution
                   b.Links.Add(a);
               }
 
-              var finishedPaths = new List<ComplexPath>();
+              var finishedPaths = 0L;
               var traversalQueue = new Queue<ComplexPath>();
               traversalQueue.Enqueue(new ComplexPath("start"));
               while (traversalQueue.Count > 0)
@@ -88,7 +88,7 @@ public static partial class AoCSolution
                       nextPath.Path.Add(link.Name);
                       if (link.Name == "end")
                       {
-                          finishedPaths.Add(nextPath);
+                          finishedPaths++;
                       }
                       else
                       {
@@ -102,7 +102,7 @@ public static partial class AoCSolution
                   }
               }
 
-              Console.WriteLine($"\tAnswer is: {finishedPaths.Count()}");
+              Console.WriteLine($"\tAnswer is: {finishedPaths}");
           }
       };
 
