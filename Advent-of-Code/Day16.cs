@@ -7,6 +7,7 @@ public static partial class AoCSolution
     {
         Console.WriteLine("===== Day 16 =====");
         var testInput = File.ReadAllLines("TestInputs/day16_test.txt");
+        var testInput2 = File.ReadAllLines("TestInputs/day16_test2.txt");
         var mainInput = File.ReadAllLines("Inputs/day16.txt");
 
         Console.WriteLine("Part 1 solution for test inputs:");
@@ -14,16 +15,15 @@ public static partial class AoCSolution
         Console.WriteLine("Part 1 solution for puzzle inputs:");
         SolvePart1ForInputs(mainInput);
 
-        //Console.WriteLine("Part 2 solution for test inputs:");
-        //SolvePart2ForInputs(testInput);
-        //Console.WriteLine("Part 2 solution for puzzle inputs:");
-        //SolvePart2ForInputs(mainInput);
+        Console.WriteLine("Part 2 solution for test inputs:");
+        SolvePart2ForInputs(testInput2);
+        Console.WriteLine("Part 2 solution for puzzle inputs:");
+        SolvePart2ForInputs(mainInput);
 
         void SolvePart1ForInputs(string[] entries)
         {
             foreach (var entry in entries)
             {
-                //var bits = entry.Select(x => Convert.ToString(x < 'A' ? x - '0' : x - 'A' + 10, 2)).ToArray();
                 var bits = Hex2Bits(entry);
 
                 Console.WriteLine($"Packet: {entry}");
@@ -47,7 +47,22 @@ public static partial class AoCSolution
 
         void SolvePart2ForInputs(string[] entries)
         {
-            Console.WriteLine($"\tAnswer is: {0}");
+            foreach (var entry in entries)
+            {
+                var bits = Hex2Bits(entry);
+
+                Console.WriteLine($"Packet: {entry}");
+                Console.Write("Bits: ");
+                for (int i = 0; i < bits.Length; i++)
+                {
+                    Console.Write(bits[i] ? "1" : "0");
+                }
+                Console.WriteLine();
+
+                var p = new Packet(bits, 1);
+
+                Console.WriteLine($"\tAnswer is: {p.CalculatedValue}");
+            }
         }
 
         
@@ -59,7 +74,6 @@ public static partial class AoCSolution
         var bytes = hex.Chunk(2).Select(chunk => Convert.ToByte(new String(chunk), 16)).ToArray();
         foreach (var b in bytes)
         {
-            //Console.WriteLine($"{b:X2}: {b} : {Convert.ToString(b,2).PadLeft(8,'0')}");
             bits.AddRange(Convert.ToString(b, 2).PadLeft(8, '0').Select(x => x == '1'));
         }
         return bits.ToArray();
@@ -75,7 +89,20 @@ public static partial class AoCSolution
         public int Length { get; set; }
         public int Version { get; set; }
         public int TypeId { get; set; }
-        public int Value { get; set; }
+        public long Value { get; set; }
+
+        public long CalculatedValue => TypeId switch
+        {
+            0 => SubPackets.Sum(x => x.CalculatedValue),
+            1 => Multiply(SubPackets.Select(x => x.CalculatedValue)),
+            2 => SubPackets.Min(x => x.CalculatedValue),
+            3 => SubPackets.Max(x => x.CalculatedValue),
+            5 => SubPackets[0].CalculatedValue > SubPackets[1].CalculatedValue ? 1 : 0,
+            6 => SubPackets[0].CalculatedValue < SubPackets[1].CalculatedValue ? 1 : 0,
+            7 => SubPackets[0].CalculatedValue == SubPackets[1].CalculatedValue ? 1 : 0,
+            _ => Value
+        };
+
         public List<Packet> SubPackets { get; set; } = new();
 
         public Packet(bool[] input, int indent)
@@ -146,6 +173,13 @@ public static partial class AoCSolution
                 }
             }
             Console.Write(new String(' ', indent * 2)); Console.WriteLine($"Packet length: {Length}");
+        }
+
+        public long Multiply(IEnumerable<long> vals)
+        {
+            var sum = 1L;
+            foreach (var val in vals) sum *= val;
+            return sum;
         }
     }
 }
