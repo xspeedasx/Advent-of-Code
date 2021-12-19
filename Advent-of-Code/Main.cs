@@ -20,10 +20,14 @@ var solutions = new[]
     Day15,
     Day16,
     Day17,
+    Day18,
 };
 
 for(;;)
 {
+    await solutions.Last()();
+    Console.WriteLine("Press any key to continue...");
+    Console.ReadKey();
     Console.WriteLine($"Choose day to view solution (1-{solutions.Length})");
     var ans = Console.ReadLine();
     if (int.TryParse(ans, out var day) && day >= 1 && day <= solutions.Length)
