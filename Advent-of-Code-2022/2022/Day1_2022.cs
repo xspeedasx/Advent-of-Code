@@ -1,8 +1,8 @@
 ﻿namespace Advent_of_Code_2022._2022;
 
-public sealed class Day1_2022
+public static class Day1_2022
 {
-    public void Run(string testInputPath, string challengeInputPath)
+    public static void Run(string testInputPath, string challengeInputPath)
     {
         Solve(File.ReadAllLines(testInputPath));
         Solve(File.ReadAllLines(challengeInputPath));
