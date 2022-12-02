@@ -9,9 +9,7 @@
     </PropertyGroup>
     
     <ItemGroup>
-        <None Update="Inputs">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
+        <None Include="$(SolutionDir)Advent-of-Code-2022\2022\Inputs\**" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
 
 </Project>
