@@ -1,7 +1,5 @@
 ﻿#pragma warning disable CS0162
 // ReSharper disable HeuristicUnreachableCode
-using System.Diagnostics;
-using System.Numerics;
 using System.Text.RegularExpressions;
 
 namespace Advent_of_Code_2022._2022;
@@ -9,18 +7,20 @@ namespace Advent_of_Code_2022._2022;
 public static class Day11_2022
 {
     public const bool DAY11_DEBUG = false; 
-    public const bool DAY11_DEBUG_PART2 = true; 
+    public const bool DAY11_DEBUG_PART2 = true;
     public static void Run(string testInputPath, string challengeInputPath)
     {
-        Solve(File.ReadAllLines(testInputPath), 20);
-        Solve(File.ReadAllLines(challengeInputPath), 20);
+        // Solve(File.ReadAllLines(testInputPath), 20);
+        // Solve(File.ReadAllLines(challengeInputPath), 20);
         // Solve(File.ReadAllLines(testInputPath), 10000, false);
-        // Solve(File.ReadAllLines(challengeInputPath), 10000, false);
+        Solve(File.ReadAllLines(challengeInputPath), 10000, false);
     }
 
     private static void Solve(string[] lines, int rounds, bool relief = true)
     {
-        Dictionary<int, Monkey> monkeys = ParseMonkeys(lines.Concat(new[] { "" }));
+        int magicRedux = 1;
+        
+        Dictionary<int, Monkey> monkeys = ParseMonkeys(lines.Concat(new[] { "" }), ref magicRedux);
 
         var inspections = new long[monkeys.Count];
         
@@ -37,25 +37,18 @@ public static class Day11_2022
                 while (monkey.Items.Count > 0)
                 {
                     inspections[monkeyId]++;
-                    var item = monkey.Items.Dequeue();
+                    long item = monkey.Items.Dequeue();
 
                     if(DAY11_DEBUG)
                         Console.WriteLine($"  Monkey inspects an item with a worry level of {item}.");
 
-                    var sw = Stopwatch.StartNew();
-                    var afterInspect = monkey.Operation(item);
-                    sw.Stop();
-                    if(sw.ElapsedMilliseconds > 1000)
-                        Console.WriteLine($"WARNING: Operation took {sw.ElapsedMilliseconds} ms");
-                    var aferBored = relief ? BigInteger.Divide(afterInspect, 3) : afterInspect;
+                    long afterInspect = monkey.Operation(item) % magicRedux;
+
+                    long aferBored = relief ? afterInspect / 3 : afterInspect;
                     if(DAY11_DEBUG)
                         Console.WriteLine($"    Monkey gets bored with item. Worry level is divided by 3 to {aferBored}.");
                     
-                    sw.Restart();
                     var isTrueTarget = monkey.Test(aferBored);
-                    sw.Stop();
-                    if(sw.ElapsedMilliseconds > 1000)
-                        Console.WriteLine($"WARNING: Test took {sw.ElapsedMilliseconds} ms");
                     
                     var target = isTrueTarget
                         ? monkey.TrueTarget
@@ -105,7 +98,7 @@ public static class Day11_2022
         Console.WriteLine($"Monkey business: {monkeyBusiness}");
     }
 
-    private static Dictionary<int, Monkey> ParseMonkeys(IEnumerable<string> lines)
+    private static Dictionary<int, Monkey> ParseMonkeys(IEnumerable<string> lines, ref int magicRedux)
     {
         var idPattern = new Regex(@"Monkey (?<id>\d+):");
         var monkeys = new Dictionary<int, Monkey>();
@@ -119,10 +112,10 @@ public static class Day11_2022
             else if (line.StartsWith("  Starting items:"))
             {
                 var lineItems = line[18..];
-                currentMonkey.Items = new Queue<BigInteger>(
+                currentMonkey.Items = new Queue<long>(
                     lineItems
                         .Split(',', StringSplitOptions.TrimEntries)
-                        .Select(x => new BigInteger(int.Parse(x)))
+                        .Select(long.Parse)
                 );
             }
             else if (line.StartsWith("  Operation: "))
@@ -138,7 +131,7 @@ public static class Day11_2022
                     ? value == null
                         ? worry =>
                         {
-                            BigInteger addRes = worry + worry;
+                            long addRes = worry + worry;
                             if (DAY11_DEBUG)
                                 Console.WriteLine(
                                     $"    Worry level increases by {(value == null ? "itself" : value)} to {addRes}.");
@@ -146,7 +139,7 @@ public static class Day11_2022
                         }
                         : worry =>
                         {
-                            BigInteger addRes = worry + value.Value;
+                            long addRes = worry + value.Value;
                             if (DAY11_DEBUG)
                                 Console.WriteLine(
                                     $"    Worry level increases by {(value == null ? "itself" : value)} to {addRes}.");
@@ -155,7 +148,7 @@ public static class Day11_2022
                     : value == null
                         ? worry =>
                         {
-                            BigInteger addRes = worry * worry;
+                            long addRes = worry * worry;
                             // reduce the result somehow?
 
                             if (DAY11_DEBUG)
@@ -165,7 +158,7 @@ public static class Day11_2022
                         }
                         : worry =>
                         {
-                            BigInteger multRes = worry * value.Value;
+                            long multRes = worry * value.Value;
                             if (DAY11_DEBUG)
                                 Console.WriteLine(
                                     $"    Worry level is multiplied by {(value == null ? "itself" : value)} to {multRes}.");
@@ -176,6 +169,7 @@ public static class Day11_2022
             {
                 var divPart = line[21..];
                 var divider = int.Parse(divPart);
+                magicRedux *= divider;
 
                 currentMonkey.Test = worry =>
                 {
@@ -215,17 +209,17 @@ public static class Day11_2022
     class Monkey
     {
         public int Id { get; set; }
-        public Queue<BigInteger> Items { get; set; } = null!;
+        public Queue<long> Items { get; set; } = null!;
 
         /// <summary>
         /// Changes worry level of currently held item
         /// </summary>
-        public Func<BigInteger, BigInteger> Operation { get; set; } = null!;
+        public Func<long, long> Operation { get; set; } = null!;
 
         /// <summary>
         /// Determines next target by testing worry level
         /// </summary>
-        public Func<BigInteger, bool> Test { get; set; } = null!;
+        public Func<long, bool> Test { get; set; } = null!;
 
         public int TrueTarget { get; set; }
         public int FalseTarget { get; set; }
