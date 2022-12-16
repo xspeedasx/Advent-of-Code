@@ -9,22 +9,38 @@ public static class Day15_2022
     {
         //Solve(File.ReadAllLines(testInputPath), 10);
         //Solve(File.ReadAllLines(challengeInputPath), 2_000_000);
-        Solve2(File.ReadAllLines(testInputPath));
+        
+        //Solve2(File.ReadAllLines(testInputPath), 20);
+        Solve2(File.ReadAllLines(challengeInputPath), 4_000_000);
     }
 
-    private static void Solve2(string[] lines)
+    private static void Solve2(string[] lines, int mapSize)
     {
         List<(Point sensor, Point beacon)> sensors = ParseSensors(lines).ToList();
-        for (var y = 0; y < 20; y++)
+        List<(Point sensor, Point beacon, int dist)> sensorsWithDist = sensors
+            .Select(s => (s.sensor, s.beacon, Manhattan(s.sensor, s.beacon)))
+            .ToList();
+        
+        for (int y = 0; y < mapSize; y++)
         {
-            for (var x = 0; x < 20; x++)
+            for (int x = 0; x < mapSize; x++)
             {
-                var mindist = int.MaxValue;
-                foreach ((Point sensor, Point beacon) in sensors)
+                var currentPoint = new Point(x, y);
+                var sensor = sensorsWithDist.FirstOrDefault(s => Manhattan(s.sensor, currentPoint) <= s.dist);
+                
+                if (sensor == default)
                 {
-                    int distToSensor = Manhattan(new Point(x, y), sensor);
+                    Console.WriteLine($"Found: {x},{y}. Signal: {(x * 4_000_000L + y)}");
+                    return;
+                }
+                else
+                {
+                    var dist = Manhattan(new Point(sensor.sensor.X, currentPoint.Y), sensor.sensor);
+                    x = sensor.sensor.X + sensor.dist - dist;
                 }
             }
+            
+            //Console.WriteLine($"y={y}");
         }
     }
     
