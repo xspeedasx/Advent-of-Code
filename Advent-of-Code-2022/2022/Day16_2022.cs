@@ -1,21 +1,23 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Collections.Concurrent;
+using System.Text.RegularExpressions;
 
 namespace Advent_of_Code_2022._2022;
 
 public static class Day16_2022
 {
-    private static Regex LineRx =
+    private static readonly Regex LineRx =
         new Regex(@"Valve (?<name>\w+) has flow rate=(?<rate>\d+); tunnels? leads? to valves? (?<neighbors>.+)$");
-    private static Dictionary<string, Valve> valves = new();
+    private static readonly Dictionary<string, Valve> Valves = new();
+    private static readonly Dictionary<string, Dictionary<string, int>> Distances = new();
     public static void Run(string testInputPath, string challengeInputPath)
     {
         Solve(File.ReadAllLines(testInputPath));
-        //Solve(File.ReadAllLines(challengeInputPath));
+        Solve(File.ReadAllLines(challengeInputPath));
     }
 
     private static void Solve(string[] lines)
     {
-        valves.Clear();
+        Valves.Clear();
         foreach (string line in lines)
         {
             Match m = LineRx.Match(line);
@@ -25,88 +27,143 @@ public static class Day16_2022
             {
                 Name = name,
                 Rate = int.Parse(m.Groups["rate"].Value),
-                Neighbors = neighbors,
-                Actions = new Action[neighbors.Length+1]
+                Neighbors = neighbors
             };
-            
-            valve.Actions[0] = new Action(ActionType.OPEN, name);
-            for (int i = 0; i < neighbors.Length; i++)
-            {
-                valve.Actions[i + 1] = new Action(ActionType.MOVE, neighbors[i]);
-            }
 
-            valves.Add(name, valve);
-            Console.WriteLine($"Added: {name}");
+            Valves.Add(name, valve);
         }
-
-        Console.WriteLine($"max possible release: {valves.Sum(x=> x.Value.Rate*30)}");
-
-        int score = Traverse(new Path(
-            "AA",
-            0,
-            Array.Empty<string>(),
-            Array.Empty<Action>()
-        )).GetAwaiter().GetResult();
-        Console.WriteLine($"Score: {score}");
-    }
-
-    private static async Task<int> Traverse(Path path)
-    {
-        if (path.Actions.Length == 20) return path.Score;
-
-        int remaining = 29 - path.Actions.Length;
-
-        string location = path.Location;
-        Valve valve = valves[location];
-        Action[] actions = valve.Actions;
-
-        var tasks = new List<Task<int>>();
         
-        foreach (Action action in actions)
+        // draw graph:
+        foreach ((string _, Valve v) in Valves)
         {
-            switch (action.Type)
+            foreach (string neighbor in v.Neighbors)
             {
-                case ActionType.OPEN when !path.OpenValves.Contains(location):
+                Console.WriteLine($"{v.Name} {neighbor}");
+            }
+        }
+        
+        Console.WriteLine("calculating distances");
+        foreach ((string v1, Valve _) in Valves)
+        {
+            foreach ((string v2, Valve _) in Valves)
+            {
+                if (v1 == v2) continue;
+                int d = FindDistance(Valves, v1, v2);
+                
+                if (!Distances.ContainsKey(v1))
                 {
-                    tasks.Add(Traverse(new Path(
-                        location,
-                        path.Score + remaining * valve.Rate,
-                        path.OpenValves.Append(location).ToArray(),
-                        path.Actions.Append(action).ToArray()
-                    )));
-
-                    break;
+                    Distances[v1] = new Dictionary<string, int>();
                 }
-                case ActionType.MOVE:
-                    tasks.Add(Traverse(path with
-                    {
-                        Location = action.Target,
-                        Actions = path.Actions.Append(action).ToArray()
-                    }));
-                    break;
+                Distances[v1][v2] = d;
+                if (!Distances.ContainsKey(v2))
+                {
+                    Distances[v2] = new Dictionary<string, int>();
+                }
+                Distances[v2][v1] = d;
             }
         }
 
-        int[] results = await Task.WhenAll(tasks);
-        return results.Max();
+        Console.WriteLine($"Total release with all valves open: {Valves.Sum(x=> x.Value.Rate*30)}");
+        
+        var maxScore = 0;
+        var pathLenTerritory = 0;
+        var queue = new ConcurrentQueue<Move>();
+        
+        queue.Enqueue(new Move("AA", 0, 30, new HashSet<string>{ "AA" }));
+
+        while (queue.Count > 0)
+        {
+            var nextQueue = new ConcurrentQueue<Move>();
+            Parallel.ForEach(queue, m =>
+            {
+                (string? currentLocation, int score, int remainingTime, HashSet<string> visited) = m;
+                
+                if (visited.Count > pathLenTerritory)
+                {
+                    pathLenTerritory = visited.Count;
+                    Console.WriteLine($"Visiting {pathLenTerritory} path length teritory!");
+                }
+
+                if (score > maxScore)
+                {
+                    maxScore = score;
+                    Console.WriteLine(
+                        $"Visited valves {String.Join(",", visited)}. Score: {score}, Rem. time: {remainingTime}");
+                }
+
+                Dictionary<string, int> targets = Distances[currentLocation];
+                foreach ((string target, int dist) in targets)
+                {
+                    if (target == currentLocation) continue;
+                    if (visited.Contains(target)) continue;
+                    int targetFlow = Valves[target].Rate;
+                    if(targetFlow == 0) continue;
+                    
+                    // walk there, then open
+                    int remainTimeAfterWalkingAndOpening = remainingTime - dist - 1;
+                    if (remainTimeAfterWalkingAndOpening <= 0) continue;
+
+                    int scoreAfter = score + remainTimeAfterWalkingAndOpening * targetFlow;
+                    
+                    var nextMove = new Move(
+                        target,
+                        scoreAfter,
+                        remainTimeAfterWalkingAndOpening,
+                        visited.Append(target).ToHashSet()
+                    );
+                    lock (nextQueue)
+                    {
+                        nextQueue.Enqueue(nextMove);
+                    }
+                }
+            });
+            queue = nextQueue;
+            Console.WriteLine($"Queue passed. Next: {nextQueue.Count} items.");
+        }
+
+        Console.WriteLine($"Done. Best score: {maxScore}");
     }
 
-    private record struct Path(
-        string Location,
+    private static int FindDistance(Dictionary<string, Valve> valves, string v1, string v2)
+    {
+        var seen = new HashSet<string>();
+        var q = new Queue<(string, int)>();
+        q.Enqueue((v1, 0));
+
+        int sanity = valves.Count * valves.Count;
+        while (q.Count > 0)
+        {
+            (string n, int d) = q.Dequeue();
+            if(!seen.Add(n))
+                continue;
+            foreach (string neighbor in valves[n].Neighbors)
+            {
+                if (neighbor == v2)
+                {
+                    return d + 1;
+                }
+                q.Enqueue((neighbor, d + 1));
+            }
+
+            if (sanity-- > 0) continue;
+            Console.WriteLine("WARNING: Sanity check reached!");
+            break;
+        }
+
+        return 0;
+    }
+
+    private record struct Move(
+        string CurrentLocation,
         int Score,
-        string[] OpenValves,
-        Action[] Actions
+        int RemainingTime,
+        HashSet<string> Visited
     );
-
-    private enum ActionType { MOVE, OPEN }
-
-    private record struct Action(ActionType Type, string Target);
 
     private class Valve
     {
         public string Name { get; init; } = null!;
         public int Rate { get; init; }
         public string[] Neighbors { get; init; } = null!;
-        public Action[] Actions { get; init; } = null!;
     }
 }
