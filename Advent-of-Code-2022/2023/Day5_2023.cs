@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Diagnostics;
 
 namespace Advent_of_Code_2022._2023;
 
@@ -7,8 +7,14 @@ public static class Day5_2023
     public static void Run(string testInputPath, string challengeInputPath)
     {
         // part 1 & 2
+        var sw = new Stopwatch();
+        sw.Start();
+        
         //Solve(File.ReadAllLines(testInputPath));
         Solve(File.ReadAllLines(challengeInputPath));
+        
+        sw.Stop();
+        Console.WriteLine($"Solution took: {sw.ElapsedMilliseconds} ms");
     }
     
     private static List<RangeMap> seedToSoil = new();
@@ -64,9 +70,9 @@ public static class Day5_2023
             }
         }
 
-        //Part1(seeds);
-        //Part2(seeds);
-        Part2Stupid(seeds);
+        Part1(seeds);
+        Part2(seeds);
+        //Part2Stupid(seeds);
     }
 
     static void Part2Stupid(long[] seeds)
@@ -75,8 +81,6 @@ public static class Day5_2023
         var minLoc = long.MaxValue;
         for (int seedIdx = 0; seedIdx < seeds.Length; seedIdx += 2)
         {
-            //Console.WriteLine($"i = {i}");
-            //for (long seed = seeds[i]; seed < seeds[i] + seeds[i + 1] - 1; seed++)
             var i = seedIdx;
             Parallel.For(seeds[i], seeds[i] + seeds[i + 1] - 1, seed =>
             {
@@ -100,18 +104,18 @@ public static class Day5_2023
                         minLoc = location;
                     }
                 }
-
-                long MapEntry(List<RangeMap> maps, long entry)
-                {
-                    RangeMap? mapInRange = maps.FirstOrDefault(x => x.InRange(entry));
-                    return mapInRange?.GetMapped(entry) ?? entry;
-                }
             });
         }
 
         Console.WriteLine($"Stupid answer: {minLoc}");
     }
-    
+
+    private static long MapEntry(List<RangeMap> maps, long entry)
+    {
+        RangeMap? mapInRange = maps.FirstOrDefault(x => x.InRange(entry));
+        return mapInRange?.GetMapped(entry) ?? entry;
+    }
+
     static void Part2(long[] seeds)
     {
         var seedRanges = new List<LongRange>();
@@ -128,7 +132,7 @@ public static class Day5_2023
         List<LongRange> humiditieRanges = MapRanges(tempRanges, temperatureToHumidity);
         List<LongRange> locationRanges = MapRanges(humiditieRanges, humidityToLocation);
 
-        Console.WriteLine($"Location: {locationRanges.Min(x => x.Start)}");
+        Console.WriteLine($"Part 2: {locationRanges.Min(x => x.Start)}");
     }
 
     private static List<LongRange> MapRanges(List<LongRange> srcRanges, List<RangeMap> rangeMaps)
@@ -196,7 +200,7 @@ public static class Day5_2023
         long[] humidities = temps.Select(x => MapEntry(temperatureToHumidity, x)).ToArray();
         long[] locations = humidities.Select(x => MapEntry(humidityToLocation, x)).ToArray();
 
-        Console.WriteLine(locations.Min());
+        Console.WriteLine($"Part 1: {locations.Min()}");
 
         long MapEntry(List<RangeMap> maps, long entry)
         {
