@@ -7,8 +7,8 @@ public static class Challenges
 {
     public static void Run()
     {
-        var testInput = @"2023\Inputs\Test\testday4.txt";
-        var input = @"2023\Inputs\day4.txt";
-        Day4_2023.Run(testInput, input);
+        var testInput = @"2023\Inputs\Test\testday5.txt";
+        var input = @"2023\Inputs\day5.txt";
+        Day5_2023.Run(testInput, input);
     }
 }
