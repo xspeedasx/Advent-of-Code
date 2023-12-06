@@ -43,6 +43,23 @@ public static class Day6_2023
 
         var sTime = long.Parse(lines[0][5..].Replace(" ", ""));
         var sDistance = long.Parse(lines[1][9..].Replace(" ", ""));
+        
+        //Part2Stupid(sTime, sDistance);
+        Part2Smart(sTime, sDistance);
+    }
+
+    private static void Part2Smart(long sTime, long sDistance)
+    {
+        var x1 = (-sTime + Math.Sqrt(sTime * sTime - 4 * sDistance)) / -2;
+        var x2 = (-sTime - Math.Sqrt(sTime * sTime - 4 * sDistance)) / -2;
+        Console.WriteLine($"x1: {x1}");
+        Console.WriteLine($"x2: {x2}");
+        var diff = Math.Floor(x2) - Math.Floor(x1);
+        Console.WriteLine($"Part 2: {diff}");
+    }
+
+    private static void Part2Stupid(long sTime, long sDistance)
+    {
         long waysToWin2 = 0;
         object waysToWin2o = new();
         Parallel.For(0L, sTime, i =>
@@ -56,7 +73,7 @@ public static class Day6_2023
             if (dist <= sDistance) return;
             lock (waysToWin2o)
             {
-                waysToWin2++;    
+                waysToWin2++;
             }
         });
         Console.WriteLine($"Part 2: {waysToWin2}");
