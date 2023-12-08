@@ -52,13 +52,20 @@ public static class Day8_2023
     {
         (Dictionary<string, (string left, string right)> nodes, string moves) = ParseInput(lines);
 
+        //Solve2Stupid(nodes, moves); // don't even try...
+        Solve2Smart(nodes, moves);
+    }
+
+    private static void Solve2Smart(Dictionary<string, (string left, string right)> nodes, string moves)
+    {
         string[] aStarts = nodes.Keys.Where(x => x.EndsWith("A")).ToArray();
         string[] zEnds = nodes.Keys.Where(x => x.EndsWith("Z")).ToArray();
         Console.WriteLine($"z: {String.Join(",", zEnds)}");
-        
+
+        var sums = new List<long>();
         foreach (string aStart in aStarts)
         {
-            string anode = aStart; 
+            string anode = aStart;
             var zCounts = new int[zEnds.Length];
             var moveIdx = 0;
             int? firstReach = null;
@@ -66,45 +73,55 @@ public static class Day8_2023
             {
                 char move = moves[moveIdx % moves.Length];
                 anode = move == 'L' ? nodes[anode].left : nodes[anode].right;
-                
+
                 if (zEnds.Contains(anode))
                 {
                     if (firstReach == null)
                     {
                         Console.WriteLine($"{aStart} reached Z end {anode} after {moveIdx} moves");
                         firstReach = moveIdx;
+                        //sums.Add(moveIdx);
                     }
                     else
                     {
-                        var loopLen = moveIdx - firstReach;
+                        int loopLen = moveIdx - firstReach.Value;
                         Console.WriteLine($"next Z loop after {loopLen}");
-                        firstReach = moveIdx;
+                        sums.Add(loopLen);
+                        break;
                     }
                 }
-                // for (int i = 0; i < zEnds.Length; i++)
-                // {
-                //     if (anode == zEnds[i])
-                //     {
-                //         zCounts[i]++;
-                //     }
-                // }
 
                 moveIdx++;
-                if (moveIdx >= 1000000)
-                {
-                    break;
-                }
             }
-
-            // Console.WriteLine($"{aStart} reached z");
-            // for (int x = 0; x < zEnds.Length; x++)
-            // {
-            //     Console.WriteLine($"{zEnds[x]} : {zCounts[x]} times");
-            // }
         }
 
+        Console.WriteLine("Got loops");
 
-        //Solve2Stupid(nodes, moves);
+        var lcm = sums[0];
+        foreach (long sum in sums[1..])
+        {
+            lcm = Lcm(lcm, sum);
+        }
+
+        Console.WriteLine(lcm);
+
+
+        static long Gcd(long a, long b)
+        {
+            while (b != 0)
+            {
+                long temp = a;
+                a = b;
+                b = temp % b;
+            }
+
+            return a;
+        }
+
+        static long Lcm(long a, long b)
+        {
+            return a * b / Gcd(a, b);
+        }
     }
 
     private static void Solve2Stupid(Dictionary<string, (string left, string right)> nodes, string moves)
