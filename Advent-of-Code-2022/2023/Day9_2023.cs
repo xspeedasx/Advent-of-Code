@@ -26,32 +26,21 @@ public static class Day9_2023
             int[] nums = line.Split(" ").Select(int.Parse).ToArray();
             int[] diffs = GetDiffs(nums);
 
-            var diffTable = new List<List<int>> { nums.ToList(), diffs.ToList() };
+            var diffTable = new List<int[]> { nums, diffs };
             while (diffs.Any(x => x != 0))
             {
                 diffs = GetDiffs(diffs);
-                diffTable.Add(diffs.ToList());
+                diffTable.Add(diffs);
             }
 
-            var indent = 0;
-            foreach (List<int> diff in diffTable)
-            {
-                Console.WriteLine(new string(' ', indent) + string.Join(" ", diff));
-                indent += 1;
-            }
-
-            int ans = diffTable.Sum(x => x[^1]);
+            var ans = 0;
             var ans2 = 0;
-            for (int i = diffTable.Count - 1; i > 0; i--)
+            for (int i = diffTable.Count - 2; i >= 0; i--)
             {
-                List<int> numLine = diffTable[i - 1];
-                ans2 = numLine[0] - ans2;
+                ans += diffTable[i][^1];
+                ans2 = diffTable[i][0] - ans2;
             }
 
-            Console.WriteLine($"answer: {ans}");
-            Console.WriteLine($"answer2: {ans2}");
-
-            Console.WriteLine("---");
             sum += ans;
             sum2 += ans2;
         }
