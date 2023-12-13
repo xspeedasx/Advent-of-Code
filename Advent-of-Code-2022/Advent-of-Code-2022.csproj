@@ -12,5 +12,9 @@
         <None Include="$(SolutionDir)Advent-of-Code-2022\2022\Inputs\**" CopyToOutputDirectory="Always" />
         <None Include="$(SolutionDir)Advent-of-Code-2022\2023\Inputs\**" CopyToOutputDirectory="Always" />
     </ItemGroup>
+    
+    <ItemGroup>
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    </ItemGroup>
 
 </Project>
