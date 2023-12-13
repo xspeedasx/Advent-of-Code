@@ -1,5 +1,4 @@
 ﻿using System.Drawing;
-using System.Numerics;
 using System.Text;
 
 namespace Advent_of_Code_2022._2022;
