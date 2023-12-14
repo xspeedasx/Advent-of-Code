@@ -11,8 +11,8 @@ public static class Day14_2023
         var sw = new Stopwatch();
         sw.Start();
 
-        Solve(File.ReadAllLines(testInputPath));
-        //Solve(File.ReadAllLines(challengeInputPath));
+        //Solve(File.ReadAllLines(testInputPath));
+        Solve(File.ReadAllLines(challengeInputPath));
 
         sw.Stop();
         Console.WriteLine($"Solution took: {sw.ElapsedMilliseconds} ms");
@@ -42,22 +42,19 @@ public static class Day14_2023
         Size mapSize = new Size(map[0].Length, map.Length);
 
         Dictionary<string, HashSet<Point>> cache = new();
+        LinkedList<string> loopDetectionList = new();
         HashSet<Point> newBalls = balls;
-        for (int i = 0; i < 1_000_000_000; i++)
+        var targetCycles = 1_000_000_000;
+        for (int i = 0; i < targetCycles; i++)
         {
-            // byte[] hash = GetHash(newBalls);
-            var hash1 = GetHash(newBalls);
-            if (cache.TryGetValue(hash1, out var value))
+            string hash1 = GetHash(newBalls);
+            // Console.WriteLine($"Cycle {i}: {hash1}");
+            if (cache.TryGetValue(hash1, out HashSet<Point>? value))
             {
-                if (hash1 == GetHash(value))
-                {
-                    break;
-                }
                 newBalls = value;
             }
             else
             {
-                // var x = newBalls.ToArray().ToHashSet();
                 newBalls = Roll(mapSize, newBalls, rocks, "N");
                 // Console.WriteLine("after N");
                 // PrintState(map, newBalls);
@@ -72,15 +69,35 @@ public static class Day14_2023
                 // PrintState(map, newBalls);
                 // Console.WriteLine($"after {i} cycles");
                 // PrintState(map, newBalls);
-                //     hash = GetHash(newBalls);
-                //var hash = GetHash(x);
-                Console.WriteLine($"added new hash = {hash1}");
                 cache[hash1] = newBalls;
+                
+                string hash2 = GetHash(newBalls);
+
+                LinkedListNode<string>? foundHash = loopDetectionList.Find(hash2);
+                if(foundHash is null)
+                {
+                    loopDetectionList.AddLast(hash2);
+                }
+                else
+                {
+                    var cnt = 0;
+                    while (foundHash != null)
+                    {
+                        foundHash = foundHash.Next;
+                        cnt++;
+                    }
+
+                    int cycles = cnt * ((targetCycles - i) / cnt);
+                    Console.WriteLine($"Loop detected! Loop size: {cnt}. Skipping {cycles:# ### ### ###} cycles");
+                    i += cycles;
+
+                }
+                
             }
             
-            if(i > 0 && i % 100000 == 0)
+            if(i > 0 && i % 0_000_010 == 0)
             {
-                Console.WriteLine($"Cycle {i:# ### ### ###} / {1_000_000_000} cache size: {cache.Count:# ### ### ###}");
+                Console.WriteLine($"Cycle {i:# ### ### ###} / {targetCycles} cache size: {cache.Count:# ### ### ###}");
             }
         }
 
@@ -89,7 +106,7 @@ public static class Day14_2023
             // PrintState(map, newBalls);
         }
 
-        var load = newBalls.Sum(b => map.Length - b.Y);
+        int load = newBalls.Sum(b => map.Length - b.Y);
         Console.WriteLine($"Load: {load}");
     }
 
@@ -122,7 +139,7 @@ public static class Day14_2023
     {
         var bytes = new byte[balls.Count * 8];
         var byteidx = 0;
-        foreach (Point ball in balls)
+        foreach (Point ball in balls.OrderBy(x => x.Y).ThenBy(x => x.X))
         {
             var xBytes = BitConverter.GetBytes(ball.X);
             Buffer.BlockCopy(xBytes, 0, bytes, byteidx, 4);
@@ -131,9 +148,8 @@ public static class Day14_2023
             Buffer.BlockCopy(yBytes, 0, bytes, byteidx, 4);
             byteidx += 4;
         }
-
-        // return MD5.HashData(bytes);
-        return Convert.ToBase64String(bytes);
+    
+        return Convert.ToBase64String(MD5.HashData(bytes));
     }
 
     private static HashSet<Point> Roll(Size mapSize, HashSet<Point> balls, HashSet<Point> rocks, string direction)
