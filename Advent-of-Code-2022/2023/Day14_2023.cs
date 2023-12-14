@@ -41,24 +41,42 @@ public static class Day14_2023
 
         Size mapSize = new Size(map[0].Length, map.Length);
 
-        Dictionary<byte[], HashSet<Point>> cache = new();
+        Dictionary<string, HashSet<Point>> cache = new();
         HashSet<Point> newBalls = balls;
-        for (int i = 0; i < 1; i++)
+        for (int i = 0; i < 1_000_000_000; i++)
         {
             // byte[] hash = GetHash(newBalls);
-            // if (cache.ContainsKey(hash))
-            // {
-            //     newBalls = cache[hash];
-            // }
-            // else
-            // {
+            var hash1 = GetHash(newBalls);
+            if (cache.TryGetValue(hash1, out var value))
+            {
+                if (hash1 == GetHash(value))
+                {
+                    break;
+                }
+                newBalls = value;
+            }
+            else
+            {
+                // var x = newBalls.ToArray().ToHashSet();
                 newBalls = Roll(mapSize, newBalls, rocks, "N");
+                // Console.WriteLine("after N");
+                // PrintState(map, newBalls);
                 newBalls = Roll(mapSize, newBalls, rocks, "W");
+                // Console.WriteLine("after W");
+                // PrintState(map, newBalls);
                 newBalls = Roll(mapSize, newBalls, rocks, "S");
+                // Console.WriteLine("after S");
+                // PrintState(map, newBalls);
                 newBalls = Roll(mapSize, newBalls, rocks, "E");
-            //     hash = GetHash(newBalls);
-            //     cache[hash] = newBalls;
-            // }
+                // Console.WriteLine("after E");
+                // PrintState(map, newBalls);
+                // Console.WriteLine($"after {i} cycles");
+                // PrintState(map, newBalls);
+                //     hash = GetHash(newBalls);
+                //var hash = GetHash(x);
+                Console.WriteLine($"added new hash = {hash1}");
+                cache[hash1] = newBalls;
+            }
             
             if(i > 0 && i % 100000 == 0)
             {
@@ -68,34 +86,39 @@ public static class Day14_2023
 
         if(Debugger.IsAttached)
         {
-            for (var y = 0; y < map.Length; y++)
-            {
-                for (int x = 0; x < map[y].Length; x++)
-                {
-                    char c = map[y][x];
-                    if (newBalls.Contains(new Point(x, y)))
-                    {
-                        Console.Write('O');
-                    }
-                    else if (c == '#')
-                    {
-                        Console.Write('#');
-                    }
-                    else
-                    {
-                        Console.Write('.');
-                    }
-                }
-
-                Console.WriteLine();
-            }
+            // PrintState(map, newBalls);
         }
 
         var load = newBalls.Sum(b => map.Length - b.Y);
         Console.WriteLine($"Load: {load}");
     }
 
-    private static byte[] GetHash(HashSet<Point> balls)
+    private static void PrintState(string[] map, HashSet<Point> balls)
+    {
+        for (var y = 0; y < map.Length; y++)
+        {
+            for (int x = 0; x < map[y].Length; x++)
+            {
+                char c = map[y][x];
+                if (balls.Contains(new Point(x, y)))
+                {
+                    Console.Write('O');
+                }
+                else if (c == '#')
+                {
+                    Console.Write('#');
+                }
+                else
+                {
+                    Console.Write('.');
+                }
+            }
+
+            Console.WriteLine();
+        }
+    }
+
+    private static string GetHash(HashSet<Point> balls)
     {
         var bytes = new byte[balls.Count * 8];
         var byteidx = 0;
@@ -109,75 +132,76 @@ public static class Day14_2023
             byteidx += 4;
         }
 
-        return MD5.HashData(bytes);
+        // return MD5.HashData(bytes);
+        return Convert.ToBase64String(bytes);
     }
 
     private static HashSet<Point> Roll(Size mapSize, HashSet<Point> balls, HashSet<Point> rocks, string direction)
     {
         var newBalls = new HashSet<Point>();
 
-        // if (direction is "N")
-        // {
-        //     foreach (Point ball in balls)
-        //     {
-        //         var nextObstacles = rocks.Union(newBalls).Where(r => r.X == ball.X && r.Y < ball.Y).ToList();
-        //         if (nextObstacles.Count == 0)
-        //         {
-        //             newBalls.Add(ball with { Y = 0 });
-        //         }
-        //         else
-        //         {
-        //             newBalls.Add(ball with { Y = nextObstacles.Max(r => r.Y + 1) });
-        //         }
-        //     }
-        // } 
-        // else if (direction is "S")
-        // {
-        //     foreach (Point ball in balls)
-        //     {
-        //         var nextObstacles = rocks.Union(newBalls).Where(r => r.X == ball.X && r.Y > ball.Y).ToList();
-        //         if (nextObstacles.Count == 0)
-        //         {
-        //             newBalls.Add(ball with { Y = mapSize.Height-1 });
-        //         }
-        //         else
-        //         {
-        //             newBalls.Add(ball with { Y = nextObstacles.Min(r => r.Y - 1) });
-        //         }
-        //     }
-        // }
-        // else if (direction is "W")
-        // {
-        //     foreach (Point ball in balls)
-        //     {
-        //         var nextObstacles = rocks.Union(newBalls).Where(r => r.Y == ball.Y && r.X < ball.X).ToList();
-        //         if (nextObstacles.Count == 0)
-        //         {
-        //             newBalls.Add(ball with { X = 0 });
-        //         }
-        //         else
-        //         {
-        //             newBalls.Add(ball with { X = nextObstacles.Max(r => r.X + 1) });
-        //         }
-        //     }
-        // } 
-        // else if (direction is "E")
-        // {
-        //     foreach (Point ball in balls)
-        //     {
-        //         var nextObstacles = rocks.Union(newBalls).Where(r => r.Y == ball.Y && r.X > ball.X).ToList();
-        //         if (nextObstacles.Count == 0)
-        //         {
-        //             newBalls.Add(ball with { X = mapSize.Width-1 });
-        //         }
-        //         else
-        //         {
-        //             newBalls.Add(ball with { X = nextObstacles.Min(r => r.X - 1) });
-        //         }
-        //     }
-        // }
-        //
-        // return newBalls;
+        /*if (direction is "N")
+        {
+            foreach (Point ball in balls)
+            {
+                var nextObstacles = rocks.Union(newBalls).Where(r => r.X == ball.X && r.Y < ball.Y).ToList();
+                if (nextObstacles.Count == 0)
+                {
+                    newBalls.Add(ball with { Y = 0 });
+                }
+                else
+                {
+                    newBalls.Add(ball with { Y = nextObstacles.Max(r => r.Y + 1) });
+                }
+            }
+        } 
+        else if (direction is "S")
+        {
+            foreach (Point ball in balls)
+            {
+                var nextObstacles = rocks.Union(newBalls).Where(r => r.X == ball.X && r.Y > ball.Y).ToList();
+                if (nextObstacles.Count == 0)
+                {
+                    newBalls.Add(ball with { Y = mapSize.Height-1 });
+                }
+                else
+                {
+                    newBalls.Add(ball with { Y = nextObstacles.Min(r => r.Y - 1) });
+                }
+            }
+        }
+        else if (direction is "W")
+        {
+            foreach (Point ball in balls)
+            {
+                var nextObstacles = rocks.Union(newBalls).Where(r => r.Y == ball.Y && r.X < ball.X).ToList();
+                if (nextObstacles.Count == 0)
+                {
+                    newBalls.Add(ball with { X = 0 });
+                }
+                else
+                {
+                    newBalls.Add(ball with { X = nextObstacles.Max(r => r.X + 1) });
+                }
+            }
+        } 
+        else if (direction is "E")
+        {
+            foreach (Point ball in balls)
+            {
+                var nextObstacles = rocks.Union(newBalls).Where(r => r.Y == ball.Y && r.X > ball.X).ToList();
+                if (nextObstacles.Count == 0)
+                {
+                    newBalls.Add(ball with { X = mapSize.Width-1 });
+                }
+                else
+                {
+                    newBalls.Add(ball with { X = nextObstacles.Min(r => r.X - 1) });
+                }
+            }
+        }
+        
+        return newBalls;*/
 
         if (direction is "N")
         {
@@ -193,14 +217,20 @@ public static class Day14_2023
                     // if (c == '#' || newBalls.Contains(newBall))
                     if (rocks.Contains(newBall) || newBalls.Contains(newBall))
                     {
-                        newBalls.Add(new Point(x, y + 1));
+                        while (!newBalls.Add(new Point(x, y + 1)))
+                        {
+                            y++;
+                        }
                         settled = true;
                         break;
                     }
 
                     if (y == 0)
                     {
-                        newBalls.Add(newBall);
+                        while (!newBalls.Add(newBall))
+                        {
+                            y++;
+                        }
                         settled = true;
                         break;
                     }
@@ -231,14 +261,20 @@ public static class Day14_2023
                     // if (c == '#' || newBalls.Contains(newBall))
                     if (rocks.Contains(newBall) || newBalls.Contains(newBall))
                     {
-                        newBalls.Add(new Point(x, y - 1));
+                        while (!newBalls.Add(new Point(x, y - 1)))
+                        {
+                            y--;
+                        }
                         settled = true;
                         break;
                     }
 
                     if (y == mapSize.Height-1)
                     {
-                        newBalls.Add(newBall);
+                        while (!newBalls.Add(newBall))
+                        {
+                            y--;
+                        }
                         settled = true;
                         break;
                     }
@@ -269,14 +305,20 @@ public static class Day14_2023
                     // if (c == '#' || newBalls.Contains(newBall))
                     if (rocks.Contains(newBall) || newBalls.Contains(newBall))
                     {
-                        newBalls.Add(new Point(x + 1, y));
+                        while (!newBalls.Add(new Point(x + 1, y)))
+                        {
+                            x++;
+                        }
                         settled = true;
                         break;
                     }
 
                     if (x == 0)
                     {
-                        newBalls.Add(newBall);
+                        while (!newBalls.Add(newBall))
+                        {
+                            x++;
+                        }
                         settled = true;
                         break;
                     }
@@ -307,14 +349,20 @@ public static class Day14_2023
                     // if (c == '#' || newBalls.Contains(newBall))
                     if (rocks.Contains(newBall) || newBalls.Contains(newBall))
                     {
-                        newBalls.Add(new Point(x - 1, y));
+                        while (!newBalls.Add(new Point(x - 1, y)))
+                        {
+                            x--;
+                        }
                         settled = true;
                         break;
                     }
 
                     if (x == mapSize.Width-1)
                     {
-                        newBalls.Add(newBall);
+                        while (!newBalls.Add(newBall))
+                        {
+                            x--;
+                        }
                         settled = true;
                         break;
                     }
