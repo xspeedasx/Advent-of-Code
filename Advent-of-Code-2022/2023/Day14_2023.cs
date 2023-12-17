@@ -95,7 +95,7 @@ public static class Day14_2023
                 
             }
             
-            if(i > 0 && i % 0_000_010 == 0)
+            if(i > 0 && i % 10 == 0)
             {
                 Console.WriteLine($"Cycle {i:# ### ### ###} / {targetCycles} cache size: {cache.Count:# ### ### ###}");
             }
