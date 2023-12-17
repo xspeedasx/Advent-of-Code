@@ -1,11 +1,9 @@
 ﻿using System.Diagnostics;
-using System.Drawing;
-using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 
 namespace Advent_of_Code_2022._2023;
 
-public static partial class Day15_2023
+public static class Day15_2023
 {
     public static void Run(string testInputPath, string challengeInputPath)
     {
@@ -31,7 +29,7 @@ public static partial class Day15_2023
 
         foreach (var split in splits)
         {
-            Match match = Day15_2023_OperationRegex().Match(split);
+            Match match = Regex.Match(split, @"(\w+)([=-])(\d?)");
             var label = match.Groups[1].Value;
             var op = match.Groups[2].Value;
             var num = string.IsNullOrEmpty(match.Groups[3].Value) ? 0 : int.Parse(match.Groups[3].Value);
@@ -118,7 +116,4 @@ public static partial class Day15_2023
 
         return sum;
     }
-
-    [GeneratedRegex(@"(\w+)([=-])(\d?)")]
-    private static partial Regex Day15_2023_OperationRegex();
 }

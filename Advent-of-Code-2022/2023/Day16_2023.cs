@@ -3,7 +3,7 @@ using System.Drawing;
 
 namespace Advent_of_Code_2022._2023;
 
-public static class Day162023
+public static class Day16_2023
 {
     public static void Run(string testInputPath, string challengeInputPath)
     {
