@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Drawing;
+using static Advent_of_Code_2022.Directions;
 
 namespace Advent_of_Code_2022._2023;
 
@@ -16,22 +17,6 @@ public static class Day16_2023
         sw.Stop();
         Console.WriteLine($"Solution took: {sw.ElapsedMilliseconds} ms");
     }
-
-    private static Dictionary<Direction, Size> Offsets = new()
-    {
-        [Direction.UP] = new Size(0, -1),
-        [Direction.DOWN] = new Size(0, 1),
-        [Direction.LEFT] = new Size(-1, 0),
-        [Direction.RIGHT] = new Size(1, 0)
-    };
-
-    private enum Direction
-    {
-        UP,
-        DOWN,
-        LEFT,
-        RIGHT
-    };
 
     private static void Solve(string[] map)
     {

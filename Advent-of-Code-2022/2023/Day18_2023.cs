@@ -1,8 +1,8 @@
 ﻿using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
-using System.Runtime.InteropServices.ComTypes;
 using System.Text;
+using static Advent_of_Code_2022.Directions;
 
 namespace Advent_of_Code_2022._2023;
 
@@ -21,22 +21,6 @@ public static class Day18_2023
         sw.Stop();
         Console.WriteLine($"Solution took: {sw.ElapsedMilliseconds} ms");
     }
-    
-    private static Dictionary<Direction, Size> Offsets = new()
-    {
-        [Direction.UP] = new Size(0, -1),
-        [Direction.DOWN] = new Size(0, 1),
-        [Direction.LEFT] = new Size(-1, 0),
-        [Direction.RIGHT] = new Size(1, 0)
-    };
-
-    private enum Direction
-    {
-        UP,
-        DOWN,
-        LEFT,
-        RIGHT
-    };
 
     record Line(Point Start, Point End)
     {
