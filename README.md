@@ -1,7 +1,4 @@
 # Advent-of-Code
-Requires [.NET 6 SDK](https://dotnet.microsoft.com/download/dotnet/6.0) to build
-## Run instructions
-Open Advent-of-Code directory in terminal (where .csproj is) `cd <path>` and type:
-```bash
-dotnet run
-```
+Just open the .sln in you IDE and run project or look for tests.
+
+2021 version can be found [here](https://github.com/xspeedasx/Advent-of-Code-2021) until I could be bothered to merge it here :D
