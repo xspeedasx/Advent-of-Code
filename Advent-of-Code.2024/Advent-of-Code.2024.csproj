@@ -15,7 +15,10 @@
 
     <ItemGroup>
         <None Update="Inputs\*.txt">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Inputs\TestInputs\*.txt">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
     </ItemGroup>
 
