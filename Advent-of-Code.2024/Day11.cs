@@ -168,19 +168,19 @@ public class Day11(ITestOutputHelper output)
         var cache = new Dictionary<(long, int), long>();
         return stones.Sum(stone => CountBlink(stone, depth));
         
-        long CountBlink(long stone, int depth)
+        long CountBlink(long stone, int remainingDepth)
         {
-            if(cache.TryGetValue((stone, depth), out var count))
+            if(cache.TryGetValue((stone, remainingDepth), out var count))
             {
                 return count;
             }
             (long a, long? b) = BlinkStone(stone);
-            if (depth == 1)
+            if (remainingDepth == 1)
             {
                 return 1 + (b.HasValue ? 1 : 0);
             }
-            cache[(stone, depth)] = CountBlink(a, depth - 1) + (b.HasValue ? CountBlink(b.Value, depth - 1) : 0);
-            return CountBlink(a, depth - 1) + (b.HasValue ? CountBlink(b.Value, depth - 1) : 0);
+            cache[(stone, remainingDepth)] = CountBlink(a, remainingDepth - 1) + (b.HasValue ? CountBlink(b.Value, remainingDepth - 1) : 0);
+            return CountBlink(a, remainingDepth - 1) + (b.HasValue ? CountBlink(b.Value, remainingDepth - 1) : 0);
         }
     }
     
