@@ -301,7 +301,7 @@ public class Day13(ITestOutputHelper output)
     [Fact]
     public void Part2()
     {
-        Assert.Equal(0, _input
+        Assert.Equal(82261957837868, _input
             .Select(a => a with
             {
                 Prize = new PointL(
