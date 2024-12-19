@@ -206,6 +206,6 @@ public class Day19
     [Fact]
     public void Part2()
     {
-        Assert.Equal(209, CountPermutations(_input));
+        Assert.Equal(777669668613191, CountPermutations(_input));
     }
 }
