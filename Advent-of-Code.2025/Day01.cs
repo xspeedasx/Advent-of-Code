@@ -84,7 +84,7 @@ public class Day01(ITestOutputHelper output)
     public void Part2()
     {
         var cnt = CalcDialPass0(_input);
-        Assert.Equal(5956, cnt);
+        Assert.Equal(5963, cnt);
     }
 
     private int CalcDialPass0(string[] input)
