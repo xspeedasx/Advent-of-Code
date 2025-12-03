@@ -75,11 +75,84 @@ public class Day02(ITestOutputHelper output)
     [Fact]
     public void Part2Test()
     {
-
+        long ans = GetSumOfInvalidIdsMultiple(TestInput);
+        Assert.Equal(4174379265, ans);
     }
 
     [Fact]
     public void Part2()
     {
+        long ans = GetSumOfInvalidIdsMultiple(_input);
+        Assert.Equal(37432260594, ans);
+    }
+
+    private long GetSumOfInvalidIdsMultiple(string input)
+    {
+        var ranges = input.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(x =>
+            {
+                var parts = x.Split('-', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                return (parts[0], parts[1]);
+            }).ToList();
+        long sum = 0;
+        foreach (var (start, end) in ranges)
+        {
+            var invalidIds = new HashSet<long>();
+            var lengths = new HashSet<int>{start.Length, end.Length};
+            foreach (var length in lengths)
+            {
+                for (int l = 1; l <= (int)(length / 2); l++)
+                {
+                    if(length % l != 0)
+                    {
+                        // length must be multiple of segment length
+                        continue;
+                    }
+                    var parts = length / l;
+                    var increment = 1L;
+                    for (int i = 0; i < parts-1; i++)
+                    {
+                        increment = increment * (long)Math.Pow(10, l) + 1;
+                    }
+                    output.WriteLine($"Checking range {start}-{end}, length {length}, segment length {l}, parts {parts}, increment {increment}");
+
+                    var min = long.Parse(start);
+                    if (length != start.Length)
+                    {
+                        min = long.Parse("1" + new String('0', length - 1));
+                    }
+                    var max = long.Parse(end);
+                    if (length != end.Length)
+                    {
+                        max = long.Parse(new String('9', length));
+                    }
+                    
+                    for(long currentSegment = long.Parse(min.ToString()[..l]);
+                        currentSegment <= long.Parse(max.ToString()[..l]);
+                        currentSegment++)
+                    {
+                        var currentNumStr = Enumerable.Range(0, parts)
+                            .Select(_ => currentSegment.ToString())
+                            .Aggregate((a, b) => a + b);
+                        var currentNum = long.Parse(currentNumStr);
+                        if (currentNum > max)
+                            break;
+                        if (currentNum >= min && currentNum <= max)
+                        {
+                            if (invalidIds.Add(currentNum))
+                            {
+                                output.WriteLine($"  Found invalid ID: {currentNum}");
+                            }
+                            else
+                            {
+                                output.WriteLine($"  Repeated invalid ID: {currentNum}");
+                            }
+                        }
+                    }
+                }
+            }
+            sum += invalidIds.Sum();
+        }
+        return sum;
     }
 }
