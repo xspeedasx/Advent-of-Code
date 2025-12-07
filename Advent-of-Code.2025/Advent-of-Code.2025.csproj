@@ -35,7 +35,7 @@
         <None Update="Inputs\Day06.txt">
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
-        <None Update="Inputs\Day06.txt">
+        <None Update="Inputs\Day07.txt">
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
     </ItemGroup>
