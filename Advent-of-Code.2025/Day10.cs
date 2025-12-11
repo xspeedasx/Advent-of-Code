@@ -40,7 +40,6 @@ public class Day10(ITestOutputHelper output)
     
     private int GetFewestLightPresses(Machine machine, int machineIdx)
     {
-        output.WriteLine($"Processing machine {machineIdx}...");
         var queue = new Queue<MachineState>();
         queue.Enqueue(new MachineState(new bool[machine.LightCount], []));
 
@@ -115,40 +114,66 @@ public class Day10(ITestOutputHelper output)
         return machines.Select(GetFewestJoltPresses).Sum();
     }
 
-    private record MachineJoltState(int[] Joltage, int ButtonsPressed);
+    private record MachineJoltState(byte[] Joltage, int ButtonsPressed);
     
-    private int GetFewestJoltPresses(Machine machine)
+    private int GetFewestJoltPresses(Machine machine, int machineIdx)
     {
-        var queue = new Queue<MachineJoltState>();
-        queue.Enqueue(new MachineJoltState(new int[machine.JoltTarget.Length], 0));
+        output.WriteLine($"Processing machine {machineIdx}...");
+        var states = new List<MachineJoltState>{ new(new byte[machine.JoltTarget.Length], 0) };
+        var previousStates = new HashSet<string>();
+        var answer = -1;
 
-        while (queue.Count > 0)
+        while (answer == -1 && states.Count > 0)
         {
-            MachineJoltState state = queue.Dequeue();
-            
-            for (var i = 0; i < machine.Buttons.Length; i++)
+            var newStates = new List<MachineJoltState>();
+            output.WriteLine($"  States to process: {states.Count}, previous unique states: {previousStates.Count}");
+
+            Parallel.ForEach(states, state =>
             {
-                int[] stateJolts = state.Joltage.ToArray();
-                int stateButtonsPressed = state.ButtonsPressed;
-                
-                foreach (int j in machine.Buttons[i])
+                foreach (int[] button in machine.Buttons)
                 {
-                    stateJolts[j]++;
+                    byte[] stateJolts = state.Joltage.ToArray();
+                    int stateButtonsPressed = state.ButtonsPressed;
+                    
+                    foreach (int j in button)
+                    {
+                        stateJolts[j]++;
+                    }
+                    stateButtonsPressed++;
+                    
+                    bool matchesTarget = true;
+                    for (int i = 0; i < stateJolts.Length; i++)
+                    {
+                        if (stateJolts[i] != machine.JoltTarget[i])
+                            matchesTarget = false;
+                    }
+                    if (matchesTarget)
+                    {
+                        answer = stateButtonsPressed;
+                        return;
+                    }
+                    
+                    if(!ValidJoltage(state.Joltage, machine.JoltTarget))
+                        continue;
+
+                    lock (previousStates)
+                    {
+                        if (!previousStates.Add(string.Join(",", stateJolts)))
+                        {
+                            continue;
+                        }
+                    }
+                    
+                    lock (newStates)
+                    {
+                        newStates.Add(new MachineJoltState(stateJolts, stateButtonsPressed));
+                    }
                 }
-                stateButtonsPressed++;
-                
-                if (stateJolts.SequenceEqual(machine.JoltTarget))
-                {
-                    return stateButtonsPressed;
-                }
-                
-                if(!ValidJoltage(state.Joltage, machine.JoltTarget))
-                    continue;
-                queue.Enqueue(new MachineJoltState(stateJolts, stateButtonsPressed));
-            }
+            });
+            states = newStates.DistinctBy(s => string.Join(",", s.Joltage)).ToList();
             continue;
 
-            bool ValidJoltage(int[] stateJoltage, int[] machineJoltTarget)
+            bool ValidJoltage(byte[] stateJoltage, int[] machineJoltTarget)
             {
                 for (int i = 0; i < stateJoltage.Length; i++)
                 {
@@ -159,7 +184,7 @@ public class Day10(ITestOutputHelper output)
             }
         }
 
-        return 0;
+        return answer;
     }
 
     private class Machine
